@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg" href="vite.png" />
+    <title>Test cookie</title>
+    <script type="text/javascript">
+      function callback() {
+        // Get query params
+        var urlParams = new URLSearchParams(window.location.search)
+        // const oAuthToken = urlParams.get('oauth_token');
+        // const oAuthVerifier = urlParams.get('oauth_verifier');
+        const code = urlParams.get('code')
+
+        console.log(`Code is ${code}`)
+
+        if (code != null) {
+          // For KaiOS 2.5
+          if (typeof MozActivity !== 'undefined') {
+            // Send the params to tweetFit app
+            var activity = new MozActivity({
+              name: 'kaiteCallback',
+              data: { code },
+            })
+          } else {
+            // For KaiOS 3.0
+            if (typeof WebActivity !== 'undefined') {
+              console.log('KaiOS 3')
+              var activity = new WebActivity('kaiteCallback', {
+                type: 'code',
+                code,
+              })
+              activity.start().then(
+                rv => {
+                  console.log('Results passed back from activity handler:')
+                  console.log(rv)
+                },
+                err => {
+                  console.log(err)
+                }
+              )
+            }
+          }
+        }
+      }
+
+      function showCookies() {
+        const output = document.getElementById('cookies')
+        output.textContent = `> ${document.cookie}`
+      }
+
+      function setCookie() {
+        document.cookie = 'name=likidu; SameSite=None; Secure'
+        document.cookie = 'phone=kaios; SameSite=None; Secure'
+        showCookies()
+      }
+
+      function clearCookie() {
+        var cookies = document.cookie.split(';')
+
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i]
+          var eqPos = cookie.indexOf('=')
+          var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
+          document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT'
+        }
+        showCookies()
+      }
+    </script>
+  </head>
+  <body>
+    <button onclick="setCookie()">Set cookie</button>
+    <button onclick="clearCookie()">Clear cookie</button>
+    <pre id="cookies" style="color: green"></pre>
+    <pre id="log" style="color: red"></pre>
+    <script>
+      ;(function () {
+        var old = console.log
+        var logger = document.getElementById('log')
+        console.log = function () {
+          for (var i = 0; i < arguments.length; i++) {
+            if (typeof arguments[i] == 'object') {
+              logger.innerHTML +=
+                (JSON && JSON.stringify
+                  ? JSON.stringify(arguments[i], undefined, 2)
+                  : arguments[i]) + '<br />'
+            } else {
+              logger.innerHTML += arguments[i] + '<br />'
+            }
+          }
+        }
+      })()
+    </script>
+  </body>
+</html>
